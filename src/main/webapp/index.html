@@ -1,0 +1,2063 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Arcade 4 Jeux - Jouables Directement</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        :root {
+            --primary: #6c5ce7;
+            --secondary: #a29bfe;
+            --accent: #fd79a8;
+            --success: #00cec9;
+            --warning: #fdcb6e;
+            --danger: #e17055;
+            --dark: #2d3436;
+            --light: #f9f9f9;
+            --card-bg: rgba(255, 255, 255, 0.1);
+        }
+
+        body {
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            color: var(--light);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        body.rtl {
+            direction: rtl;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        /* Header */
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 0;
+            margin-bottom: 30px;
+            border-bottom: 2px solid rgba(255, 255, 255, 0.1);
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .logo i {
+            font-size: 2.8rem;
+            color: var(--accent);
+        }
+
+        .logo h1 {
+            font-size: 2.2rem;
+            background: linear-gradient(to right, #a29bfe, #fd79a8);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+
+        .controls {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .lang-selector {
+            display: flex;
+            background: rgba(255, 255, 255, 0.08);
+            border-radius: 50px;
+            padding: 5px;
+        }
+
+        .lang-btn {
+            padding: 8px 20px;
+            border: none;
+            border-radius: 50px;
+            background: transparent;
+            color: white;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .lang-btn:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .lang-btn.active {
+            background: var(--primary);
+            box-shadow: 0 4px 12px rgba(108, 92, 231, 0.4);
+        }
+
+        .game-selector {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .game-tab {
+            padding: 10px 20px;
+            background: rgba(255, 255, 255, 0.08);
+            border: none;
+            border-radius: 8px;
+            color: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .game-tab:hover {
+            background: rgba(255, 255, 255, 0.15);
+        }
+
+        .game-tab.active {
+            background: var(--primary);
+            box-shadow: 0 4px 12px rgba(108, 92, 231, 0.4);
+        }
+
+        /* Contenu principal */
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 350px;
+            gap: 30px;
+            margin-bottom: 40px;
+        }
+
+        @media (max-width: 1100px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Zone de jeu */
+        .game-area {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 20px;
+            padding: 30px;
+            min-height: 600px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .game-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+
+        .game-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+            margin-bottom: 30px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .game-title {
+            font-size: 1.8rem;
+            color: var(--success);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .game-stats {
+            display: flex;
+            gap: 20px;
+        }
+
+        .stat {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 10px 20px;
+            border-radius: 10px;
+            text-align: center;
+            min-width: 100px;
+        }
+
+        .stat-value {
+            font-size: 1.8rem;
+            font-weight: bold;
+            color: var(--accent);
+        }
+
+        .stat-label {
+            font-size: 0.9rem;
+            color: rgba(255, 255, 255, 0.7);
+            margin-top: 5px;
+        }
+
+        /* Jeux */
+        .game-content {
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        /* Pong */
+        #pongGame {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 30px;
+        }
+
+        #pongCanvas {
+            background: rgba(0, 0, 0, 0.5);
+            border-radius: 10px;
+            border: 2px solid var(--primary);
+        }
+
+        .pong-controls {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .pong-btn {
+            padding: 12px 25px;
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .pong-btn:hover {
+            background: #5a4bd1;
+            transform: translateY(-2px);
+        }
+
+        /* Tic Tac Toe */
+        #ticTacToeGame {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 30px;
+        }
+
+        .tic-tac-toe-board {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            background: rgba(255, 255, 255, 0.05);
+            padding: 20px;
+            border-radius: 15px;
+        }
+
+        .ttt-cell {
+            width: 100px;
+            height: 100px;
+            background: rgba(255, 255, 255, 0.08);
+            border-radius: 10px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 3rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .ttt-cell:hover {
+            background: rgba(255, 255, 255, 0.15);
+        }
+
+        .ttt-cell.x {
+            color: var(--accent);
+        }
+
+        .ttt-cell.o {
+            color: var(--success);
+        }
+
+        .ttt-controls {
+            display: flex;
+            gap: 20px;
+        }
+
+        /* Memory */
+        #memoryGame {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 30px;
+        }
+
+        .memory-board {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 15px;
+        }
+
+        .memory-card {
+            width: 90px;
+            height: 120px;
+            perspective: 1000px;
+            cursor: pointer;
+        }
+
+        .memory-card-inner {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            text-align: center;
+            transition: transform 0.6s;
+            transform-style: preserve-3d;
+        }
+
+        .memory-card.flipped .memory-card-inner {
+            transform: rotateY(180deg);
+        }
+
+        .memory-card-front, .memory-card-back {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            -webkit-backface-visibility: hidden;
+            backface-visibility: hidden;
+            border-radius: 10px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 2.5rem;
+        }
+
+        .memory-card-front {
+            background: var(--primary);
+            color: white;
+            transform: rotateY(180deg);
+        }
+
+        .memory-card-back {
+            background: var(--secondary);
+            color: rgba(255, 255, 255, 0.8);
+        }
+
+        /* Snake */
+        #snakeGame {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 30px;
+        }
+
+        #snakeCanvas {
+            background: rgba(0, 0, 0, 0.5);
+            border-radius: 10px;
+            border: 2px solid var(--success);
+        }
+
+        .snake-controls {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            justify-items: center;
+            max-width: 300px;
+        }
+
+        .snake-btn {
+            width: 70px;
+            height: 70px;
+            background: rgba(255, 255, 255, 0.1);
+            border: none;
+            border-radius: 10px;
+            color: white;
+            font-size: 1.5rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .snake-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .snake-btn.up {
+            grid-column: 2;
+            grid-row: 1;
+        }
+
+        .snake-btn.left {
+            grid-column: 1;
+            grid-row: 2;
+        }
+
+        .snake-btn.right {
+            grid-column: 3;
+            grid-row: 2;
+        }
+
+        .snake-btn.down {
+            grid-column: 2;
+            grid-row: 3;
+        }
+
+        /* Panneau latéral */
+        .side-panel {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 20px;
+            padding: 30px;
+            display: flex;
+            flex-direction: column;
+            gap: 25px;
+        }
+
+        .panel-section {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 15px;
+            padding: 20px;
+        }
+
+        .section-title {
+            font-size: 1.3rem;
+            margin-bottom: 15px;
+            color: var(--accent);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .difficulty-selector {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .diff-btn {
+            padding: 12px;
+            background: rgba(255, 255, 255, 0.08);
+            border: none;
+            border-radius: 8px;
+            color: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: left;
+            font-weight: 600;
+        }
+
+        .diff-btn:hover {
+            background: rgba(255, 255, 255, 0.15);
+        }
+
+        .diff-btn.active {
+            background: var(--primary);
+            box-shadow: 0 4px 12px rgba(108, 92, 231, 0.3);
+        }
+
+        .controls-info {
+            font-size: 0.95rem;
+            line-height: 1.6;
+            color: rgba(255, 255, 255, 0.8);
+        }
+
+        .controls-info ul {
+            padding-left: 20px;
+            margin-top: 10px;
+        }
+
+        .controls-info li {
+            margin-bottom: 8px;
+        }
+
+        .game-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .action-btn {
+            padding: 15px;
+            border: none;
+            border-radius: 10px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            font-size: 1rem;
+        }
+
+        .action-btn.play {
+            background: var(--success);
+            color: white;
+        }
+
+        .action-btn.play:hover {
+            background: #00b5b2;
+            transform: translateY(-2px);
+        }
+
+        .action-btn.reset {
+            background: var(--warning);
+            color: var(--dark);
+        }
+
+        .action-btn.reset:hover {
+            background: #f7b74d;
+            transform: translateY(-2px);
+        }
+
+        .action-btn.pause {
+            background: var(--accent);
+            color: white;
+        }
+
+        .action-btn.pause:hover {
+            background: #fc5a96;
+            transform: translateY(-2px);
+        }
+
+        /* Instructions */
+        .instructions {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 20px;
+            padding: 30px;
+            margin-bottom: 40px;
+        }
+
+        .instructions h3 {
+            color: var(--success);
+            margin-bottom: 15px;
+            font-size: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .instructions p {
+            line-height: 1.6;
+            color: rgba(255, 255, 255, 0.8);
+        }
+
+        /* Footer */
+        footer {
+            text-align: center;
+            padding: 25px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            color: rgba(255, 255, 255, 0.6);
+            font-size: 0.9rem;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            
+            .controls {
+                width: 100%;
+                justify-content: space-between;
+            }
+            
+            .game-tab {
+                padding: 8px 15px;
+                font-size: 0.9rem;
+            }
+            
+            .game-stats {
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+            
+            .stat {
+                min-width: 80px;
+                padding: 8px 15px;
+            }
+            
+            .tic-tac-toe-board {
+                padding: 15px;
+            }
+            
+            .ttt-cell {
+                width: 80px;
+                height: 80px;
+                font-size: 2.5rem;
+            }
+            
+            .memory-board {
+                grid-template-columns: repeat(4, 1fr);
+                gap: 10px;
+            }
+            
+            .memory-card {
+                width: 70px;
+                height: 95px;
+            }
+            
+            #pongCanvas, #snakeCanvas {
+                width: 100%;
+                max-width: 500px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .game-tab {
+                flex: 1;
+                justify-content: center;
+            }
+            
+            .ttt-cell {
+                width: 60px;
+                height: 60px;
+                font-size: 2rem;
+            }
+            
+            .memory-card {
+                width: 60px;
+                height: 80px;
+            }
+            
+            .memory-card-front, .memory-card-back {
+                font-size: 1.8rem;
+            }
+            
+            .snake-btn {
+                width: 60px;
+                height: 60px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="logo">
+                <i class="fas fa-gamepad"></i>
+                <h1 id="mainTitle">Arcade 4 Jeux</h1>
+            </div>
+            <div class="controls">
+                <div class="lang-selector">
+                    <button class="lang-btn active" id="langFr">FR</button>
+                    <button class="lang-btn" id="langEn">EN</button>
+                    <button class="lang-btn" id="langAr">AR</button>
+                </div>
+                <div class="game-selector">
+                    <button class="game-tab active" data-game="pong">
+                        <i class="fas fa-table-tennis"></i>
+                        <span id="pongTab">Pong</span>
+                    </button>
+                    <button class="game-tab" data-game="ticTacToe">
+                        <i class="fas fa-times"></i>
+                        <span id="ticTacToeTab">Morpion</span>
+                    </button>
+                    <button class="game-tab" data-game="memory">
+                        <i class="fas fa-brain"></i>
+                        <span id="memoryTab">Mémoire</span>
+                    </button>
+                    <button class="game-tab" data-game="snake">
+                        <i class="fas fa-snake"></i>
+                        <span id="snakeTab">Snake</span>
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <div class="main-content">
+            <div class="game-area">
+                <div class="game-header">
+                    <h2 class="game-title" id="currentGameTitle">
+                        <i class="fas fa-table-tennis"></i>
+                        <span>Jeu de Pong</span>
+                    </h2>
+                    <div class="game-stats">
+                        <div class="stat">
+                            <div class="stat-value" id="scoreValue">0</div>
+                            <div class="stat-label" id="scoreLabel">Score</div>
+                        </div>
+                        <div class="stat">
+                            <div class="stat-value" id="levelValue">1</div>
+                            <div class="stat-label" id="levelLabel">Niveau</div>
+                        </div>
+                        <div class="stat">
+                            <div class="stat-value" id="timeValue">00:00</div>
+                            <div class="stat-label" id="timeLabel">Temps</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="game-container">
+                    <!-- Jeu Pong -->
+                    <div id="pongGame" class="game-content" style="display: flex;">
+                        <canvas id="pongCanvas" width="800" height="400"></canvas>
+                        <div class="pong-controls">
+                            <button class="pong-btn" id="pongStart">
+                                <i class="fas fa-play"></i>
+                                <span id="startPong">Démarrer</span>
+                            </button>
+                            <button class="pong-btn" id="pongPause">
+                                <i class="fas fa-pause"></i>
+                                <span id="pausePong">Pause</span>
+                            </button>
+                            <button class="pong-btn" id="pongReset">
+                                <i class="fas fa-redo"></i>
+                                <span id="resetPong">Redémarrer</span>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- Jeu Tic Tac Toe -->
+                    <div id="ticTacToeGame" class="game-content" style="display: none;">
+                        <div class="tic-tac-toe-board" id="ticTacToeBoard">
+                            <!-- Les cases seront générées par JavaScript -->
+                        </div>
+                        <div class="ttt-controls">
+                            <button class="action-btn play" id="tttStart">
+                                <i class="fas fa-play"></i>
+                                <span id="startTicTacToe">Nouvelle partie</span>
+                            </button>
+                            <button class="action-btn reset" id="tttReset">
+                                <i class="fas fa-redo"></i>
+                                <span id="resetTicTacToe">Recommencer</span>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- Jeu de Mémoire -->
+                    <div id="memoryGame" class="game-content" style="display: none;">
+                        <div class="memory-board" id="memoryBoard">
+                            <!-- Les cartes seront générées par JavaScript -->
+                        </div>
+                        <div class="ttt-controls">
+                            <button class="action-btn play" id="memoryStart">
+                                <i class="fas fa-play"></i>
+                                <span id="startMemory">Commencer</span>
+                            </button>
+                            <button class="action-btn reset" id="memoryReset">
+                                <i class="fas fa-redo"></i>
+                                <span id="resetMemory">Mélanger</span>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- Jeu Snake -->
+                    <div id="snakeGame" class="game-content" style="display: none;">
+                        <canvas id="snakeCanvas" width="500" height="500"></canvas>
+                        <div class="snake-controls">
+                            <button class="snake-btn up" id="snakeUp">
+                                <i class="fas fa-arrow-up"></i>
+                            </button>
+                            <button class="snake-btn left" id="snakeLeft">
+                                <i class="fas fa-arrow-left"></i>
+                            </button>
+                            <button class="snake-btn right" id="snakeRight">
+                                <i class="fas fa-arrow-right"></i>
+                            </button>
+                            <button class="snake-btn down" id="snakeDown">
+                                <i class="fas fa-arrow-down"></i>
+                            </button>
+                        </div>
+                        <div class="pong-controls">
+                            <button class="pong-btn" id="snakeStart">
+                                <i class="fas fa-play"></i>
+                                <span id="startSnake">Démarrer</span>
+                            </button>
+                            <button class="pong-btn" id="snakePause">
+                                <i class="fas fa-pause"></i>
+                                <span id="pauseSnake">Pause</span>
+                            </button>
+                            <button class="pong-btn" id="snakeReset">
+                                <i class="fas fa-redo"></i>
+                                <span id="resetSnake">Redémarrer</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="side-panel">
+                <div class="panel-section">
+                    <h3 class="section-title">
+                        <i class="fas fa-sliders-h"></i>
+                        <span id="settingsTitle">Paramètres</span>
+                    </h3>
+                    <div class="difficulty-selector">
+                        <button class="diff-btn active" data-difficulty="easy" id="easyBtn">
+                            <i class="fas fa-star"></i>
+                            <span id="easyText">Facile</span>
+                        </button>
+                        <button class="diff-btn" data-difficulty="medium" id="mediumBtn">
+                            <i class="fas fa-star-half-alt"></i>
+                            <span id="mediumText">Moyen</span>
+                        </button>
+                        <button class="diff-btn" data-difficulty="hard" id="hardBtn">
+                            <i class="fas fa-star"></i>
+                            <span id="hardText">Difficile</span>
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="panel-section">
+                    <h3 class="section-title">
+                        <i class="fas fa-gamepad"></i>
+                        <span id="controlsTitle">Contrôles</span>
+                    </h3>
+                    <div class="controls-info" id="controlsInfo">
+                        <p id="pongControls">Pong: Utilisez les touches HAUT et BAS pour déplacer votre raquette.</p>
+                        <p id="ticTacToeControls" style="display: none;">Tic-Tac-Toe: Cliquez sur une case pour placer votre symbole.</p>
+                        <p id="memoryControls" style="display: none;">Mémoire: Cliquez sur deux cartes pour trouver les paires.</p>
+                        <p id="snakeControls" style="display: none;">Snake: Utilisez les touches fléchées ou les boutons à l'écran.</p>
+                    </div>
+                </div>
+                
+                <div class="panel-section">
+                    <h3 class="section-title">
+                        <i class="fas fa-cogs"></i>
+                        <span id="actionsTitle">Actions</span>
+                    </h3>
+                    <div class="game-buttons">
+                        <button class="action-btn play" id="mainStart">
+                            <i class="fas fa-play"></i>
+                            <span id="startGameText">Démarrer le jeu</span>
+                        </button>
+                        <button class="action-btn reset" id="mainReset">
+                            <i class="fas fa-redo"></i>
+                            <span id="resetGameText">Redémarrer</span>
+                        </button>
+                        <button class="action-btn pause" id="mainPause">
+                            <i class="fas fa-pause"></i>
+                            <span id="pauseGameText">Pause</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="instructions">
+            <h3>
+                <i class="fas fa-info-circle"></i>
+                <span id="instructionsTitle">Instructions du jeu</span>
+            </h3>
+            <p id="gameInstructions">
+                Bienvenue au jeu Pong! Utilisez les touches fléchées HAUT et BAS pour déplacer votre raquette et renvoyer la balle. Marquez des points en faisant passer la balle derrière la raquette de l'adversaire.
+            </p>
+        </div>
+        
+        <footer>
+            <p id="footerText">Arcade 4 Jeux - Tous les jeux sont jouables directement dans cette page. Changez de jeu à tout moment avec les onglets ci-dessus.</p>
+        </footer>
+    </div>
+
+    <script>
+        // Variables globales
+        let currentLanguage = 'fr';
+        let currentGame = 'pong';
+        let difficulty = 'easy';
+        let gameActive = false;
+        let gamePaused = false;
+        let score = 0;
+        let level = 1;
+        let gameTime = 0;
+        let timerInterval;
+        
+        // Textes multilingues
+        const translations = {
+            fr: {
+                mainTitle: "Arcade 4 Jeux",
+                pongTab: "Pong",
+                ticTacToeTab: "Morpion",
+                memoryTab: "Mémoire",
+                snakeTab: "Snake",
+                scoreLabel: "Score",
+                levelLabel: "Niveau",
+                timeLabel: "Temps",
+                settingsTitle: "Paramètres",
+                easyText: "Facile",
+                mediumText: "Moyen",
+                hardText: "Difficile",
+                controlsTitle: "Contrôles",
+                actionsTitle: "Actions",
+                startGameText: "Démarrer le jeu",
+                resetGameText: "Redémarrer",
+                pauseGameText: "Pause",
+                instructionsTitle: "Instructions du jeu",
+                footerText: "Arcade 4 Jeux - Tous les jeux sont jouables directement dans cette page. Changez de jeu à tout moment avec les onglets ci-dessus.",
+                
+                // Instructions spécifiques aux jeux
+                pongInstructions: "Bienvenue au jeu Pong! Utilisez les touches fléchées HAUT et BAS pour déplacer votre raquette et renvoyer la balle. Marquez des points en faisant passer la balle derrière la raquette de l'adversaire.",
+                ticTacToeInstructions: "Bienvenue au Tic-Tac-Toe! Cliquez sur une case vide pour placer votre X. Essayez d'aligner 3 X horizontalement, verticalement ou diagonalement avant l'ordinateur.",
+                memoryInstructions: "Bienvenue au jeu de Mémoire! Retournez deux cartes à la fois pour trouver les paires correspondantes. Essayez de toutes les trouver en un minimum de coups.",
+                snakeInstructions: "Bienvenue au Snake! Utilisez les touches fléchées pour diriger le serpent. Mangez la nourriture pour grandir et marquer des points. Évitez de heurter les murs ou votre propre queue.",
+                
+                // Contrôles spécifiques aux jeux
+                pongControls: "Pong: Utilisez les touches HAUT et BAS pour déplacer votre raquette.",
+                ticTacToeControls: "Tic-Tac-Toe: Cliquez sur une case pour placer votre symbole.",
+                memoryControls: "Mémoire: Cliquez sur deux cartes pour trouver les paires.",
+                snakeControls: "Snake: Utilisez les touches fléchées ou les boutons à l'écran.",
+                
+                // Boutons spécifiques aux jeux
+                startPong: "Démarrer",
+                pausePong: "Pause",
+                resetPong: "Redémarrer",
+                startTicTacToe: "Nouvelle partie",
+                resetTicTacToe: "Recommencer",
+                startMemory: "Commencer",
+                resetMemory: "Mélanger",
+                startSnake: "Démarrer",
+                pauseSnake: "Pause",
+                resetSnake: "Redémarrer",
+                
+                // Titres des jeux
+                pongTitle: "Jeu de Pong",
+                ticTacToeTitle: "Tic-Tac-Toe (Morpion)",
+                memoryTitle: "Jeu de Mémoire",
+                snakeTitle: "Snake Game"
+            },
+            en: {
+                mainTitle: "Arcade 4 Games",
+                pongTab: "Pong",
+                ticTacToeTab: "Tic-Tac-Toe",
+                memoryTab: "Memory",
+                snakeTab: "Snake",
+                scoreLabel: "Score",
+                levelLabel: "Level",
+                timeLabel: "Time",
+                settingsTitle: "Settings",
+                easyText: "Easy",
+                mediumText: "Medium",
+                hardText: "Hard",
+                controlsTitle: "Controls",
+                actionsTitle: "Actions",
+                startGameText: "Start Game",
+                resetGameText: "Restart",
+                pauseGameText: "Pause",
+                instructionsTitle: "Game Instructions",
+                footerText: "Arcade 4 Games - All games are playable directly in this page. Switch games anytime using the tabs above.",
+                
+                // Instructions spécifiques aux jeux
+                pongInstructions: "Welcome to Pong game! Use UP and DOWN arrow keys to move your paddle and return the ball. Score points by getting the ball past your opponent's paddle.",
+                ticTacToeInstructions: "Welcome to Tic-Tac-Toe! Click on an empty cell to place your X. Try to align 3 X's horizontally, vertically or diagonally before the computer does.",
+                memoryInstructions: "Welcome to Memory game! Flip two cards at a time to find matching pairs. Try to find all pairs in minimum moves.",
+                snakeInstructions: "Welcome to Snake game! Use arrow keys to control the snake. Eat food to grow and score points. Avoid hitting walls or your own tail.",
+                
+                // Contrôles spécifiques aux jeux
+                pongControls: "Pong: Use UP and DOWN arrow keys to move your paddle.",
+                ticTacToeControls: "Tic-Tac-Toe: Click on a cell to place your symbol.",
+                memoryControls: "Memory: Click on two cards to find matching pairs.",
+                snakeControls: "Snake: Use arrow keys or on-screen buttons.",
+                
+                // Boutons spécifiques aux jeux
+                startPong: "Start",
+                pausePong: "Pause",
+                resetPong: "Restart",
+                startTicTacToe: "New Game",
+                resetTicTacToe: "Restart",
+                startMemory: "Start",
+                resetMemory: "Shuffle",
+                startSnake: "Start",
+                pauseSnake: "Pause",
+                resetSnake: "Restart",
+                
+                // Titres des jeux
+                pongTitle: "Pong Game",
+                ticTacToeTitle: "Tic-Tac-Toe",
+                memoryTitle: "Memory Game",
+                snakeTitle: "Snake Game"
+            },
+            ar: {
+                mainTitle: "أركيد 4 ألعاب",
+                pongTab: "بونج",
+                ticTacToeTab: "تيك تاك تو",
+                memoryTab: "ذاكرة",
+                snakeTab: "أفعى",
+                scoreLabel: "النتيجة",
+                levelLabel: "المستوى",
+                timeLabel: "الوقت",
+                settingsTitle: "الإعدادات",
+                easyText: "سهل",
+                mediumText: "متوسط",
+                hardText: "صعب",
+                controlsTitle: "التحكم",
+                actionsTitle: "الإجراءات",
+                startGameText: "بدء اللعبة",
+                resetGameText: "إعادة التشغيل",
+                pauseGameText: "إيقاف مؤقت",
+                instructionsTitle: "تعليمات اللعبة",
+                footerText: "أركيد 4 ألعاب - جميع الألعاب قابلة للعب مباشرة في هذه الصفحة. قم بتبديل الألعاب في أي وقت باستخدام الألسنة أعلاه.",
+                
+                // Instructions spécifiques aux jeux
+                pongInstructions: "مرحبًا بكم في لعبة البونج! استخدم مفاتيح الأسهم للأعلى والأسفل لتحريك مضربك وإرجاع الكرة. سجل نقاطًا عن طريق جعل الكرة تتجاوز مضرب خصمك.",
+                ticTacToeInstructions: "مرحبًا بكم في تيك تاك تو! انقر على خلية فارغة لوضع علامة X الخاصة بك. حاول محاذاة 3 علامات X أفقياً أو عمودياً أو قطرياً قبل الكمبيوتر.",
+                memoryInstructions: "مرحبًا بكم في لعبة الذاكرة! اقلب بطاقتين في كل مرة للعثور على أزواج مطابقة. حاول العثور على جميع الأزواج بأقل عدد ممكن من الحركات.",
+                snakeInstructions: "مرحبًا بكم في لعبة الأفعى! استخدم مفاتيح الأسهم للتحكم في الأفعى. كل الطعام لتنمو وتسجل نقاطًا. تجنب الاصطدام بالجدران أو ذيلك.",
+                
+                // Contrôles spécifiques aux jeux
+                pongControls: "البونج: استخدم مفاتيح الأسهم للأعلى والأسفل لتحريك المضرب.",
+                ticTacToeControls: "تيك تاك تو: انقر على خلية لوضع رمزك.",
+                memoryControls: "الذاكرة: انقر على بطاقتين للعثور على أزواج مطابقة.",
+                snakeControls: "الأفعى: استخدم مفاتيح الأسهم أو الأزرار على الشاشة.",
+                
+                // Boutons spécifiques aux jeux
+                startPong: "بدء",
+                pausePong: "إيقاف مؤقت",
+                resetPong: "إعادة التشغيل",
+                startTicTacToe: "لعبة جديدة",
+                resetTicTacToe: "إعادة التشغيل",
+                startMemory: "بدء",
+                resetMemory: "خلط",
+                startSnake: "بدء",
+                pauseSnake: "إيقاف مؤقت",
+                resetSnake: "إعادة التشغيل",
+                
+                // Titres des jeux
+                pongTitle: "لعبة البونج",
+                ticTacToeTitle: "تيك تاك تو",
+                memoryTitle: "لعبة الذاكرة",
+                snakeTitle: "لعبة الأفعى"
+            }
+        };
+
+        // Initialisation
+        document.addEventListener('DOMContentLoaded', function() {
+            initLanguage();
+            initGameTabs();
+            initDifficulty();
+            initGameControls();
+            initTimer();
+            initPong();
+            initTicTacToe();
+            initMemory();
+            initSnake();
+            updateGameInstructions();
+            updateControlsInfo();
+        });
+
+        // Gestion de la langue
+        function initLanguage() {
+            document.getElementById('langFr').addEventListener('click', () => changeLanguage('fr'));
+            document.getElementById('langEn').addEventListener('click', () => changeLanguage('en'));
+            document.getElementById('langAr').addEventListener('click', () => changeLanguage('ar'));
+        }
+
+        function changeLanguage(lang) {
+            currentLanguage = lang;
+            
+            // Mettre à jour les boutons de langue
+            document.querySelectorAll('.lang-btn').forEach(btn => btn.classList.remove('active'));
+            document.getElementById(`lang${lang.charAt(0).toUpperCase() + lang.slice(1)}`).classList.add('active');
+            
+            // Mettre à jour la direction du texte
+            if (lang === 'ar') {
+                document.body.classList.add('rtl');
+            } else {
+                document.body.classList.remove('rtl');
+            }
+            
+            // Mettre à jour tous les textes
+            updateTexts();
+            updateGameInstructions();
+            updateControlsInfo();
+        }
+
+        function updateTexts() {
+            const texts = translations[currentLanguage];
+            
+            // Mettre à jour tous les éléments avec des IDs
+            for (const key in texts) {
+                const element = document.getElementById(key);
+                if (element) {
+                    element.textContent = texts[key];
+                }
+            }
+        }
+
+        // Onglets de jeu
+        function initGameTabs() {
+            document.querySelectorAll('.game-tab').forEach(tab => {
+                tab.addEventListener('click', function() {
+                    const game = this.getAttribute('data-game');
+                    switchGame(game);
+                });
+            });
+        }
+
+        function switchGame(game) {
+            currentGame = game;
+            
+            // Mettre à jour les onglets actifs
+            document.querySelectorAll('.game-tab').forEach(tab => {
+                tab.classList.remove('active');
+                if (tab.getAttribute('data-game') === game) {
+                    tab.classList.add('active');
+                }
+            });
+            
+            // Cacher tous les jeux
+            document.querySelectorAll('.game-content').forEach(content => {
+                content.style.display = 'none';
+            });
+            
+            // Afficher le jeu sélectionné
+            document.getElementById(`${game}Game`).style.display = 'flex';
+            
+            // Mettre à jour le titre du jeu
+            const gameTitles = {
+                'pong': translations[currentLanguage].pongTitle,
+                'ticTacToe': translations[currentLanguage].ticTacToeTitle,
+                'memory': translations[currentLanguage].memoryTitle,
+                'snake': translations[currentLanguage].snakeTitle
+            };
+            
+            document.getElementById('currentGameTitle').innerHTML = `
+                <i class="fas fa-${getGameIcon(game)}"></i>
+                <span>${gameTitles[game]}</span>
+            `;
+            
+            // Mettre à jour les instructions et contrôles
+            updateGameInstructions();
+            updateControlsInfo();
+            
+            // Réinitialiser l'état du jeu
+            resetGameState();
+        }
+
+        function getGameIcon(game) {
+            const icons = {
+                'pong': 'table-tennis',
+                'ticTacToe': 'times',
+                'memory': 'brain',
+                'snake': 'snake'
+            };
+            return icons[game];
+        }
+
+        // Niveau de difficulté
+        function initDifficulty() {
+            document.querySelectorAll('.diff-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    difficulty = this.getAttribute('data-difficulty');
+                    
+                    // Mettre à jour les boutons actifs
+                    document.querySelectorAll('.diff-btn').forEach(b => b.classList.remove('active'));
+                    this.classList.add('active');
+                    
+                    // Mettre à jour la difficulté dans les jeux
+                    updateGameDifficulty();
+                });
+            });
+        }
+
+        function updateGameDifficulty() {
+            // Cette fonction sera implémentée dans chaque jeu
+            if (currentGame === 'pong') updatePongDifficulty();
+            else if (currentGame === 'snake') updateSnakeDifficulty();
+        }
+
+        // Contrôles de jeu généraux
+        function initGameControls() {
+            document.getElementById('mainStart').addEventListener('click', startGame);
+            document.getElementById('mainReset').addEventListener('click', resetGame);
+            document.getElementById('mainPause').addEventListener('click', togglePause);
+        }
+
+        function startGame() {
+            if (!gameActive) {
+                gameActive = true;
+                gamePaused = false;
+                
+                // Démarrer le jeu spécifique
+                if (currentGame === 'pong') startPongGame();
+                else if (currentGame === 'ticTacToe') startTicTacToeGame();
+                else if (currentGame === 'memory') startMemoryGame();
+                else if (currentGame === 'snake') startSnakeGame();
+                
+                // Mettre à jour l'interface
+                document.getElementById('mainPause').innerHTML = `
+                    <i class="fas fa-pause"></i>
+                    <span id="pauseGameText">${translations[currentLanguage].pauseGameText}</span>
+                `;
+            }
+        }
+
+        function resetGame() {
+            resetGameState();
+            
+            // Réinitialiser le jeu spécifique
+            if (currentGame === 'pong') resetPongGame();
+            else if (currentGame === 'ticTacToe') resetTicTacToeGame();
+            else if (currentGame === 'memory') resetMemoryGame();
+            else if (currentGame === 'snake') resetSnakeGame();
+        }
+
+        function togglePause() {
+            if (!gameActive) return;
+            
+            gamePaused = !gamePaused;
+            
+            if (gamePaused) {
+                // Mettre en pause le jeu spécifique
+                if (currentGame === 'pong') pausePongGame();
+                else if (currentGame === 'snake') pauseSnakeGame();
+                
+                document.getElementById('mainPause').innerHTML = `
+                    <i class="fas fa-play"></i>
+                    <span id="pauseGameText">${translations[currentLanguage].startGameText}</span>
+                `;
+            } else {
+                // Reprendre le jeu spécifique
+                if (currentGame === 'pong') resumePongGame();
+                else if (currentGame === 'snake') resumeSnakeGame();
+                
+                document.getElementById('mainPause').innerHTML = `
+                    <i class="fas fa-pause"></i>
+                    <span id="pauseGameText">${translations[currentLanguage].pauseGameText}</span>
+                `;
+            }
+        }
+
+        function resetGameState() {
+            score = 0;
+            level = 1;
+            gameTime = 0;
+            gameActive = false;
+            gamePaused = false;
+            
+            document.getElementById('scoreValue').textContent = '0';
+            document.getElementById('levelValue').textContent = '1';
+            document.getElementById('timeValue').textContent = '00:00';
+        }
+
+        // Timer
+        function initTimer() {
+            clearInterval(timerInterval);
+            timerInterval = setInterval(() => {
+                if (gameActive && !gamePaused) {
+                    gameTime++;
+                    const minutes = Math.floor(gameTime / 60).toString().padStart(2, '0');
+                    const seconds = (gameTime % 60).toString().padStart(2, '0');
+                    document.getElementById('timeValue').textContent = `${minutes}:${seconds}`;
+                }
+            }, 1000);
+        }
+
+        // Mise à jour du score
+        function updateScore(points) {
+            score += points;
+            document.getElementById('scoreValue').textContent = score;
+            
+            // Augmenter le niveau tous les 50 points
+            const newLevel = Math.floor(score / 50) + 1;
+            if (newLevel > level) {
+                level = newLevel;
+                document.getElementById('levelValue').textContent = level;
+            }
+        }
+
+        // Instructions du jeu
+        function updateGameInstructions() {
+            const instructions = {
+                'pong': translations[currentLanguage].pongInstructions,
+                'ticTacToe': translations[currentLanguage].ticTacToeInstructions,
+                'memory': translations[currentLanguage].memoryInstructions,
+                'snake': translations[currentLanguage].snakeInstructions
+            };
+            
+            document.getElementById('gameInstructions').textContent = instructions[currentGame];
+        }
+
+        // Info des contrôles
+        function updateControlsInfo() {
+            // Cacher tous les textes de contrôle
+            document.getElementById('pongControls').style.display = 'none';
+            document.getElementById('ticTacToeControls').style.display = 'none';
+            document.getElementById('memoryControls').style.display = 'none';
+            document.getElementById('snakeControls').style.display = 'none';
+            
+            // Afficher les contrôles du jeu actuel
+            document.getElementById(`${currentGame}Controls`).style.display = 'block';
+        }
+
+        /* --------------------------- */
+        /* IMPLÉMENTATION DU JEU PONG  */
+        /* --------------------------- */
+        let pongCanvas, pongCtx;
+        let pongBall, playerPaddle, computerPaddle;
+        let pongAnimationId;
+        let pongSpeed = 5;
+
+        function initPong() {
+            pongCanvas = document.getElementById('pongCanvas');
+            pongCtx = pongCanvas.getContext('2d');
+            
+            // Initialiser les objets du jeu
+            pongBall = {
+                x: pongCanvas.width / 2,
+                y: pongCanvas.height / 2,
+                radius: 10,
+                velocityX: pongSpeed,
+                velocityY: pongSpeed,
+                color: '#fd79a8'
+            };
+            
+            playerPaddle = {
+                x: 10,
+                y: (pongCanvas.height - 100) / 2,
+                width: 15,
+                height: 100,
+                color: '#a29bfe',
+                speed: 8
+            };
+            
+            computerPaddle = {
+                x: pongCanvas.width - 25,
+                y: (pongCanvas.height - 100) / 2,
+                width: 15,
+                height: 100,
+                color: '#00cec9',
+                speed: 5
+            };
+            
+            // Contrôles clavier
+            document.addEventListener('keydown', (e) => {
+                if (currentGame === 'pong' && gameActive && !gamePaused) {
+                    if (e.key === 'ArrowUp' && playerPaddle.y > 0) {
+                        playerPaddle.y -= playerPaddle.speed;
+                    } else if (e.key === 'ArrowDown' && playerPaddle.y < pongCanvas.height - playerPaddle.height) {
+                        playerPaddle.y += playerPaddle.speed;
+                    }
+                }
+            });
+            
+            // Contrôles boutons
+            document.getElementById('pongStart').addEventListener('click', startPongGame);
+            document.getElementById('pongPause').addEventListener('click', togglePongPause);
+            document.getElementById('pongReset').addEventListener('click', resetPongGame);
+            
+            // Dessiner l'écran initial
+            drawPong();
+        }
+
+        function drawPong() {
+            // Effacer le canvas
+            pongCtx.fillStyle = 'rgba(0, 0, 0, 0.5)';
+            pongCtx.fillRect(0, 0, pongCanvas.width, pongCanvas.height);
+            
+            // Dessiner la ligne centrale
+            pongCtx.beginPath();
+            pongCtx.setLineDash([10, 10]);
+            pongCtx.moveTo(pongCanvas.width / 2, 0);
+            pongCtx.lineTo(pongCanvas.width / 2, pongCanvas.height);
+            pongCtx.strokeStyle = 'rgba(255, 255, 255, 0.3)';
+            pongCtx.stroke();
+            pongCtx.setLineDash([]);
+            
+            // Dessiner la balle
+            pongCtx.beginPath();
+            pongCtx.arc(pongBall.x, pongBall.y, pongBall.radius, 0, Math.PI * 2);
+            pongCtx.fillStyle = pongBall.color;
+            pongCtx.fill();
+            pongCtx.closePath();
+            
+            // Dessiner les raquettes
+            pongCtx.fillStyle = playerPaddle.color;
+            pongCtx.fillRect(playerPaddle.x, playerPaddle.y, playerPaddle.width, playerPaddle.height);
+            
+            pongCtx.fillStyle = computerPaddle.color;
+            pongCtx.fillRect(computerPaddle.x, computerPaddle.y, computerPaddle.width, computerPaddle.height);
+        }
+
+        function startPongGame() {
+            if (pongAnimationId) {
+                cancelAnimationFrame(pongAnimationId);
+            }
+            gameActive = true;
+            gamePaused = false;
+            pongGameLoop();
+        }
+
+        function pongGameLoop() {
+            if (!gameActive || gamePaused) return;
+            
+            // Effacer le canvas
+            pongCtx.fillStyle = 'rgba(0, 0, 0, 0.5)';
+            pongCtx.fillRect(0, 0, pongCanvas.width, pongCanvas.height);
+            
+            // Dessiner la ligne centrale
+            pongCtx.beginPath();
+            pongCtx.setLineDash([10, 10]);
+            pongCtx.moveTo(pongCanvas.width / 2, 0);
+            pongCtx.lineTo(pongCanvas.width / 2, pongCanvas.height);
+            pongCtx.strokeStyle = 'rgba(255, 255, 255, 0.3)';
+            pongCtx.stroke();
+            pongCtx.setLineDash([]);
+            
+            // Mettre à jour la position de la balle
+            pongBall.x += pongBall.velocityX;
+            pongBall.y += pongBall.velocityY;
+            
+            // Rebond sur les murs haut et bas
+            if (pongBall.y + pongBall.radius > pongCanvas.height || pongBall.y - pongBall.radius < 0) {
+                pongBall.velocityY = -pongBall.velocityY;
+            }
+            
+            // IA de l'ordinateur
+            let computerPaddleCenter = computerPaddle.y + computerPaddle.height / 2;
+            if (computerPaddleCenter < pongBall.y - 10) {
+                computerPaddle.y += computerPaddle.speed;
+            } else if (computerPaddleCenter > pongBall.y + 10) {
+                computerPaddle.y -= computerPaddle.speed;
+            }
+            
+            // Garder la raquette de l'ordinateur dans les limites
+            if (computerPaddle.y < 0) computerPaddle.y = 0;
+            if (computerPaddle.y > pongCanvas.height - computerPaddle.height) {
+                computerPaddle.y = pongCanvas.height - computerPaddle.height;
+            }
+            
+            // Détection de collision avec les raquettes
+            // Joueur
+            if (pongBall.x - pongBall.radius < playerPaddle.x + playerPaddle.width &&
+                pongBall.y > playerPaddle.y && pongBall.y < playerPaddle.y + playerPaddle.height &&
+                pongBall.velocityX < 0) {
+                
+                let collidePoint = (pongBall.y - (playerPaddle.y + playerPaddle.height / 2)) / (playerPaddle.height / 2);
+                let angleRad = collidePoint * (Math.PI / 4);
+                
+                pongBall.velocityX = pongSpeed * Math.cos(angleRad);
+                pongBall.velocityY = pongSpeed * Math.sin(angleRad);
+                
+                pongSpeed += 0.2;
+                updateScore(10);
+            }
+            
+            // Ordinateur
+            if (pongBall.x + pongBall.radius > computerPaddle.x &&
+                pongBall.y > computerPaddle.y && pongBall.y < computerPaddle.y + computerPaddle.height &&
+                pongBall.velocityX > 0) {
+                
+                let collidePoint = (pongBall.y - (computerPaddle.y + computerPaddle.height / 2)) / (computerPaddle.height / 2);
+                let angleRad = collidePoint * (Math.PI / 4);
+                
+                pongBall.velocityX = -pongSpeed * Math.cos(angleRad);
+                pongBall.velocityY = pongSpeed * Math.sin(angleRad);
+            }
+            
+            // Vérifier si un joueur a marqué
+            if (pongBall.x - pongBall.radius < 0) {
+                // L'ordinateur marque
+                alert(currentLanguage === 'fr' ? "L'ordinateur a marqué! Votre score: " + score : 
+                      currentLanguage === 'en' ? "Computer scored! Your score: " + score :
+                      "سجل الكمبيوتر! نتيجتك: " + score);
+                gameActive = false;
+                return;
+            } else if (pongBall.x + pongBall.radius > pongCanvas.width) {
+                // Le joueur marque
+                updateScore(50);
+                resetPongBall();
+            }
+            
+            // Dessiner la balle
+            pongCtx.beginPath();
+            pongCtx.arc(pongBall.x, pongBall.y, pongBall.radius, 0, Math.PI * 2);
+            pongCtx.fillStyle = pongBall.color;
+            pongCtx.fill();
+            pongCtx.closePath();
+            
+            // Dessiner les raquettes
+            pongCtx.fillStyle = playerPaddle.color;
+            pongCtx.fillRect(playerPaddle.x, playerPaddle.y, playerPaddle.width, playerPaddle.height);
+            
+            pongCtx.fillStyle = computerPaddle.color;
+            pongCtx.fillRect(computerPaddle.x, computerPaddle.y, computerPaddle.width, computerPaddle.height);
+            
+            pongAnimationId = requestAnimationFrame(pongGameLoop);
+        }
+
+        function resetPongBall() {
+            pongBall.x = pongCanvas.width / 2;
+            pongBall.y = pongCanvas.height / 2;
+            pongBall.velocityX = (Math.random() > 0.5 ? 1 : -1) * pongSpeed;
+            pongBall.velocityY = (Math.random() > 0.5 ? 1 : -1) * pongSpeed;
+        }
+
+        function resetPongGame() {
+            pongBall.x = pongCanvas.width / 2;
+            pongBall.y = pongCanvas.height / 2;
+            pongSpeed = 5;
+            pongBall.velocityX = pongSpeed;
+            pongBall.velocityY = pongSpeed;
+            
+            playerPaddle.y = (pongCanvas.height - playerPaddle.height) / 2;
+            computerPaddle.y = (pongCanvas.height - computerPaddle.height) / 2;
+            
+            if (pongAnimationId) {
+                cancelAnimationFrame(pongAnimationId);
+                pongAnimationId = null;
+            }
+            
+            gameActive = false;
+            drawPong();
+        }
+
+        function updatePongDifficulty() {
+            if (difficulty === 'easy') {
+                computerPaddle.speed = 4;
+                pongSpeed = 4;
+            } else if (difficulty === 'medium') {
+                computerPaddle.speed = 6;
+                pongSpeed = 5;
+            } else if (difficulty === 'hard') {
+                computerPaddle.speed = 8;
+                pongSpeed = 6;
+            }
+        }
+
+        function togglePongPause() {
+            if (!gameActive) return;
+            
+            gamePaused = !gamePaused;
+            
+            if (gamePaused) {
+                if (pongAnimationId) {
+                    cancelAnimationFrame(pongAnimationId);
+                    pongAnimationId = null;
+                }
+            } else {
+                pongGameLoop();
+            }
+        }
+
+        function pausePongGame() {
+            if (pongAnimationId) {
+                cancelAnimationFrame(pongAnimationId);
+                pongAnimationId = null;
+            }
+        }
+
+        function resumePongGame() {
+            if (gameActive && !gamePaused) {
+                pongGameLoop();
+            }
+        }
+
+        /* --------------------------------- */
+        /* IMPLÉMENTATION DU TIC TAC TOE     */
+        /* --------------------------------- */
+        let ticTacToeBoard = ['', '', '', '', '', '', '', '', ''];
+        let currentPlayer = 'X';
+        let tttGameOver = false;
+
+        function initTicTacToe() {
+            createTicTacToeBoard();
+            
+            // Contrôles
+            document.getElementById('tttStart').addEventListener('click', startTicTacToeGame);
+            document.getElementById('tttReset').addEventListener('click', resetTicTacToeGame);
+        }
+
+        function createTicTacToeBoard() {
+            const board = document.getElementById('ticTacToeBoard');
+            board.innerHTML = '';
+            
+            for (let i = 0; i < 9; i++) {
+                const cell = document.createElement('div');
+                cell.className = 'ttt-cell';
+                cell.dataset.index = i;
+                cell.addEventListener('click', () => makeMove(i));
+                board.appendChild(cell);
+            }
+        }
+
+        function makeMove(index) {
+            if (tttGameOver || ticTacToeBoard[index] !== '' || !gameActive) return;
+            
+            ticTacToeBoard[index] = currentPlayer;
+            updateTicTacToeBoard();
+            
+            if (checkWin()) {
+                updateScore(100);
+                alert(currentLanguage === 'fr' ? "Félicitations! Vous avez gagné!" : 
+                      currentLanguage === 'en' ? "Congratulations! You won!" :
+                      "مبروك! لقد فزت!");
+                tttGameOver = true;
+                return;
+            }
+            
+            if (checkDraw()) {
+                updateScore(20);
+                alert(currentLanguage === 'fr' ? "Match nul!" : 
+                      currentLanguage === 'en' ? "It's a draw!" :
+                      "إنها تعادل!");
+                tttGameOver = true;
+                return;
+            }
+            
+            currentPlayer = 'O';
+            setTimeout(computerMove, 500);
+        }
+
+        function computerMove() {
+            if (tttGameOver) return;
+            
+            let move = findWinningMove('O');
+            if (move === -1) move = findWinningMove('X');
+            if (move === -1) move = getRandomMove();
+            
+            if (move !== -1) {
+                ticTacToeBoard[move] = 'O';
+                updateTicTacToeBoard();
+                
+                if (checkWin()) {
+                    alert(currentLanguage === 'fr' ? "L'ordinateur a gagné!" : 
+                          currentLanguage === 'en' ? "Computer won!" :
+                          "فاز الكمبيوتر!");
+                    tttGameOver = true;
+                    return;
+                }
+                
+                if (checkDraw()) {
+                    updateScore(20);
+                    alert(currentLanguage === 'fr' ? "Match nul!" : 
+                          currentLanguage === 'en' ? "It's a draw!" :
+                          "إنها تعادل!");
+                    tttGameOver = true;
+                    return;
+                }
+                
+                currentPlayer = 'X';
+            }
+        }
+
+        function findWinningMove(player) {
+            const winPatterns = [
+                [0, 1, 2], [3, 4, 5], [6, 7, 8],
+                [0, 3, 6], [1, 4, 7], [2, 5, 8],
+                [0, 4, 8], [2, 4, 6]
+            ];
+            
+            for (const pattern of winPatterns) {
+                const [a, b, c] = pattern;
+                const cells = [ticTacToeBoard[a], ticTacToeBoard[b], ticTacToeBoard[c]];
+                
+                if (cells.filter(cell => cell === player).length === 2 && cells.includes('')) {
+                    return pattern[cells.indexOf('')];
+                }
+            }
+            
+            return -1;
+        }
+
+        function getRandomMove() {
+            const emptyCells = ticTacToeBoard
+                .map((cell, index) => cell === '' ? index : -1)
+                .filter(index => index !== -1);
+            
+            if (emptyCells.length === 0) return -1;
+            
+            return emptyCells[Math.floor(Math.random() * emptyCells.length)];
+        }
+
+        function checkWin() {
+            const winPatterns = [
+                [0, 1, 2], [3, 4, 5], [6, 7, 8],
+                [0, 3, 6], [1, 4, 7], [2, 5, 8],
+                [0, 4, 8], [2, 4, 6]
+            ];
+            
+            for (const pattern of winPatterns) {
+                const [a, b, c] = pattern;
+                if (ticTacToeBoard[a] && ticTacToeBoard[a] === ticTacToeBoard[b] && ticTacToeBoard[a] === ticTacToeBoard[c]) {
+                    return true;
+                }
+            }
+            
+            return false;
+        }
+
+        function checkDraw() {
+            return !ticTacToeBoard.includes('');
+        }
+
+        function updateTicTacToeBoard() {
+            const cells = document.querySelectorAll('.ttt-cell');
+            cells.forEach((cell, index) => {
+                cell.textContent = ticTacToeBoard[index];
+                cell.className = 'ttt-cell';
+                if (ticTacToeBoard[index] === 'X') {
+                    cell.classList.add('x');
+                } else if (ticTacToeBoard[index] === 'O') {
+                    cell.classList.add('o');
+                }
+            });
+        }
+
+        function startTicTacToeGame() {
+            resetTicTacToeGame();
+            gameActive = true;
+        }
+
+        function resetTicTacToeGame() {
+            ticTacToeBoard = ['', '', '', '', '', '', '', '', ''];
+            currentPlayer = 'X';
+            tttGameOver = false;
+            gameActive = false;
+            updateTicTacToeBoard();
+        }
+
+        /* --------------------------------- */
+        /* IMPLÉMENTATION DU JEU DE MÉMOIRE  */
+        /* --------------------------------- */
+        let memoryCards = [];
+        let flippedCards = [];
+        let matchedPairs = 0;
+        let canFlip = true;
+
+        function initMemory() {
+            createMemoryBoard();
+            
+            // Contrôles
+            document.getElementById('memoryStart').addEventListener('click', startMemoryGame);
+            document.getElementById('memoryReset').addEventListener('click', resetMemoryGame);
+        }
+
+        function createMemoryBoard() {
+            const board = document.getElementById('memoryBoard');
+            board.innerHTML = '';
+            
+            const symbols = ['🍎', '🍌', '🍒', '🍕', '🏀', '⚽', '🐱', '🐶'];
+            const cards = [...symbols, ...symbols];
+            
+            // Mélanger
+            for (let i = cards.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [cards[i], cards[j]] = [cards[j], cards[i]];
+            }
+            
+            cards.forEach((symbol, index) => {
+                const card = document.createElement('div');
+                card.className = 'memory-card';
+                card.dataset.index = index;
+                card.dataset.symbol = symbol;
+                
+                const inner = document.createElement('div');
+                inner.className = 'memory-card-inner';
+                
+                const front = document.createElement('div');
+                front.className = 'memory-card-front';
+                front.textContent = symbol;
+                
+                const back = document.createElement('div');
+                back.className = 'memory-card-back';
+                back.textContent = '?';
+                
+                inner.appendChild(front);
+                inner.appendChild(back);
+                card.appendChild(inner);
+                
+                card.addEventListener('click', () => flipMemoryCard(card));
+                board.appendChild(card);
+                
+                memoryCards.push({
+                    element: card,
+                    symbol: symbol,
+                    flipped: false,
+                    matched: false
+                });
+            });
+        }
+
+        function flipMemoryCard(card) {
+            if (!canFlip || !gameActive || flippedCards.length >= 2) return;
+            
+            const index = parseInt(card.dataset.index);
+            const cardData = memoryCards[index];
+            
+            if (cardData.flipped || cardData.matched) return;
+            
+            card.classList.add('flipped');
+            cardData.flipped = true;
+            flippedCards.push(cardData);
+            
+            if (flippedCards.length === 2) {
+                canFlip = false;
+                
+                setTimeout(() => {
+                    const [card1, card2] = flippedCards;
+                    
+                    if (card1.symbol === card2.symbol) {
+                        card1.matched = true;
+                        card2.matched = true;
+                        matchedPairs++;
+                        updateScore(25);
+                        
+                        if (matchedPairs === 8) {
+                            updateScore(100);
+                            alert(currentLanguage === 'fr' ? "Félicitations! Vous avez trouvé toutes les paires!" : 
+                                  currentLanguage === 'en' ? "Congratulations! You found all pairs!" :
+                                  "مبروك! لقد وجدت جميع الأزواج!");
+                            gameActive = false;
+                        }
+                    } else {
+                        card1.element.classList.remove('flipped');
+                        card2.element.classList.remove('flipped');
+                        card1.flipped = false;
+                        card2.flipped = false;
+                    }
+                    
+                    flippedCards = [];
+                    canFlip = true;
+                }, 1000);
+            }
+        }
+
+        function startMemoryGame() {
+            resetMemoryGame();
+            gameActive = true;
+        }
+
+        function resetMemoryGame() {
+            memoryCards = [];
+            flippedCards = [];
+            matchedPairs = 0;
+            canFlip = true;
+            gameActive = false;
+            createMemoryBoard();
+        }
+
+        /* ----------------------------- */
+        /* IMPLÉMENTATION DU SNAKE GAME  */
+        /* ----------------------------- */
+        let snakeCanvas, snakeCtx;
+        let snake = [];
+        let food = {};
+        let direction = 'right';
+        let nextDirection = 'right';
+        let snakeSpeed = 10;
+        let snakeAnimationId;
+
+        function initSnake() {
+            snakeCanvas = document.getElementById('snakeCanvas');
+            snakeCtx = snakeCanvas.getContext('2d');
+            
+            resetSnakeGame();
+            
+            // Contrôles clavier
+            document.addEventListener('keydown', (e) => {
+                if (currentGame === 'snake' && gameActive && !gamePaused) {
+                    switch(e.key) {
+                        case 'ArrowUp':
+                            if (direction !== 'down') nextDirection = 'up';
+                            break;
+                        case 'ArrowDown':
+                            if (direction !== 'up') nextDirection = 'down';
+                            break;
+                        case 'ArrowLeft':
+                            if (direction !== 'right') nextDirection = 'left';
+                            break;
+                        case 'ArrowRight':
+                            if (direction !== 'left') nextDirection = 'right';
+                            break;
+                    }
+                }
+            });
+            
+            // Contrôles boutons
+            document.getElementById('snakeUp').addEventListener('click', () => {
+                if (direction !== 'down') nextDirection = 'up';
+            });
+            document.getElementById('snakeDown').addEventListener('click', () => {
+                if (direction !== 'up') nextDirection = 'down';
+            });
+            document.getElementById('snakeLeft').addEventListener('click', () => {
+                if (direction !== 'right') nextDirection = 'left';
+            });
+            document.getElementById('snakeRight').addEventListener('click', () => {
+                if (direction !== 'left') nextDirection = 'right';
+            });
+            
+            document.getElementById('snakeStart').addEventListener('click', startSnakeGame);
+            document.getElementById('snakePause').addEventListener('click', toggleSnakePause);
+            document.getElementById('snakeReset').addEventListener('click', resetSnakeGame);
+        }
+
+        function startSnakeGame() {
+            if (snakeAnimationId) {
+                clearTimeout(snakeAnimationId);
+            }
+            gameActive = true;
+            gamePaused = false;
+            snakeGameLoop();
+        }
+
+        function snakeGameLoop() {
+            if (!gameActive || gamePaused) return;
+            
+            direction = nextDirection;
+            
+            const head = {...snake[0]};
+            
+            switch(direction) {
+                case 'up': head.y -= 20; break;
+                case 'down': head.y += 20; break;
+                case 'left': head.x -= 20; break;
+                case 'right': head.x += 20; break;
+            }
+            
+            // Collision avec les murs
+            if (head.x < 0 || head.x >= snakeCanvas.width || head.y < 0 || head.y >= snakeCanvas.height) {
+                gameOverSnake();
+                return;
+            }
+            
+            // Collision avec soi-même
+            for (let segment of snake) {
+                if (head.x === segment.x && head.y === segment.y) {
+                    gameOverSnake();
+                    return;
+                }
+            }
+            
+            snake.unshift(head);
+            
+            // Manger la nourriture
+            if (head.x === food.x && head.y === food.y) {
+                generateFood();
+                updateScore(10);
+            } else {
+                snake.pop();
+            }
+            
+            drawSnakeGame();
+            
+            snakeAnimationId = setTimeout(snakeGameLoop, 1000 / snakeSpeed);
+        }
+
+        function drawSnakeGame() {
+            snakeCtx.fillStyle = 'rgba(0, 0, 0, 0.5)';
+            snakeCtx.fillRect(0, 0, snakeCanvas.width, snakeCanvas.height);
+            
+            // Nourriture
+            snakeCtx.fillStyle = '#fd79a8';
+            snakeCtx.beginPath();
+            snakeCtx.arc(food.x + 10, food.y + 10, 10, 0, Math.PI * 2);
+            snakeCtx.fill();
+            
+            // Serpent
+            snake.forEach((segment, index) => {
+                snakeCtx.fillStyle = index === 0 ? '#00cec9' : '#a29bfe';
+                snakeCtx.fillRect(segment.x, segment.y, 20, 20);
+                
+                if (index === 0) {
+                    snakeCtx.strokeStyle = '#ffffff';
+                    snakeCtx.lineWidth = 2;
+                    snakeCtx.strokeRect(segment.x, segment.y, 20, 20);
+                }
+            });
+        }
+
+        function generateFood() {
+            const maxX = Math.floor(snakeCanvas.width / 20) - 1;
+            const maxY = Math.floor(snakeCanvas.height / 20) - 1;
+            
+            let foodOnSnake;
+            do {
+                foodOnSnake = false;
+                food.x = Math.floor(Math.random() * maxX) * 20;
+                food.y = Math.floor(Math.random() * maxY) * 20;
+                
+                for (let segment of snake) {
+                    if (segment.x === food.x && segment.y === food.y) {
+                        foodOnSnake = true;
+                        break;
+                    }
+                }
+            } while (foodOnSnake);
+        }
+
+        function gameOverSnake() {
+            gameActive = false;
+            alert(currentLanguage === 'fr' ? "Game Over! Votre score: " + score : 
+                  currentLanguage === 'en' ? "Game Over! Your score: " + score :
+                  "انتهت اللعبة! نتيجتك: " + score);
+        }
+
+        function resetSnakeGame() {
+            snake = [
+                {x: 100, y: 100},
+                {x: 80, y: 100},
+                {x: 60, y: 100}
+            ];
+            
+            direction = 'right';
+            nextDirection = 'right';
+            
+            food = {x: 200, y: 200};
+            
+            if (snakeAnimationId) {
+                clearTimeout(snakeAnimationId);
+                snakeAnimationId = null;
+            }
+            
+            gameActive = false;
+            drawSnakeGame();
+        }
+
+        function updateSnakeDifficulty() {
+            if (difficulty === 'easy') snakeSpeed = 8;
+            else if (difficulty === 'medium') snakeSpeed = 12;
+            else if (difficulty === 'hard') snakeSpeed = 16;
+        }
+
+        function toggleSnakePause() {
+            if (!gameActive) return;
+            
+            gamePaused = !gamePaused;
+            
+            if (gamePaused) {
+                if (snakeAnimationId) {
+                    clearTimeout(snakeAnimationId);
+                    snakeAnimationId = null;
+                }
+            } else {
+                snakeGameLoop();
+            }
+        }
+
+        function pauseSnakeGame() {
+            if (snakeAnimationId) {
+                clearTimeout(snakeAnimationId);
+                snakeAnimationId = null;
+            }
+        }
+
+        function resumeSnakeGame() {
+            if (gameActive && !gamePaused) {
+                snakeGameLoop();
+            }
+        }
+    </script>
+</body>
+</html>
