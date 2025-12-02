@@ -59,22 +59,20 @@ pipeline {
         stage('Deploy') {
             steps {
                 echo "🚀 Déploiement sur le serveur Tomcat (${TOMCAT_SERVER})..."
-                sh '''
-                    # Envoyer le package vers le serveur
-                    scp dist/${APP_NAME}.tar.gz ${DEPLOY_USER}@${TOMCAT_SERVER}:/tmp/
-
-                    # Déploiement sur serveur distant
-                    ssh ${DEPLOY_USER}@${TOMCAT_SERVER} << 'ENDSSH'
-                        sudo rm -rf /opt/tomcat/webapps/game-hub
-                        cd /tmp
-                        tar -xzf game-hub.tar.gz
-                        sudo mv game-hub /opt/tomcat/webapps/
-                        sudo chown -R tomcat:tomcat /opt/tomcat/webapps/game-hub
-                        rm -f /tmp/game-hub.tar.gz
-                    ENDSSH
-
-                    echo "✅ Déploiement effectué avec succès !"
-                '''
+                sshagent(['ssh-tomcat']) {
+                    sh '''
+                        scp dist/${APP_NAME}.tar.gz ${DEPLOY_USER}@${TOMCAT_SERVER}:/tmp/
+                        ssh ${DEPLOY_USER}@${TOMCAT_SERVER} << 'ENDSSH'
+                            sudo rm -rf /opt/tomcat/webapps/game-hub
+                            cd /tmp
+                            tar -xzf game-hub.tar.gz
+                            sudo mv game-hub /opt/tomcat/webapps/
+                            sudo chown -R tomcat:tomcat /opt/tomcat/webapps/game-hub
+                            rm -f /tmp/game-hub.tar.gz
+ENDSSH
+                    '''
+                }
+                echo "✅ Déploiement terminé"
             }
         }
 
