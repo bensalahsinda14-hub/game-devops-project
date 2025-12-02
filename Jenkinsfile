@@ -1,103 +1,59 @@
 pipeline {
     agent any
-    
-    environment {
-        APP_NAME = 'game-hub'
-        TOMCAT_SERVER = '192.168.17.155'
-        TOMCAT_PORT = '8081'
-        DEPLOY_USER = 'sinda'
-        DEPLOY_PATH = '/opt/tomcat/webapps'
+
+    tools {
+        jdk 'JDK'           // JDK 17
+        maven 'Maven'       // Maven 3.x
     }
-    
+
     stages {
+
         stage('Checkout') {
             steps {
-                echo 'Récupération du code depuis GitHub...'
-                checkout scm
-                echo '✅ Code récupéré'
+                echo "📦 Clonage du dépôt GitHub via SSH..."
+                git credentialsId: 'idgithub-ssh-key',
+                    url: 'git@github.com:bensalahsinda14-hub/game-devops-project.git',
+                    branch: 'master'
             }
         }
-        
+
         stage('Build') {
             steps {
-                echo 'Construction du projet...'
-                sh '''
-                    mkdir -p dist/${APP_NAME}
-                    
-                    if ls *.html 1> /dev/null 2>&1; then
-                        cp *.html dist/${APP_NAME}/
-                    fi
-                    
-                    for dir in css js images assets; do
-                        if [ -d "$dir" ]; then
-                            cp -r "$dir" dist/${APP_NAME}/
-                        fi
-                    done
-                    
-                    echo "✅ Build terminé"
-                    ls -la dist/${APP_NAME}/
-                '''
+                echo "🔨 Build avec Maven..."
+                sh "mvn clean package"
             }
         }
-        
-        stage('Package') {
+
+        stage('Tests') {
             steps {
-                echo 'Création du package...'
-                sh '''
-                    cd dist
-                    tar -czf ${APP_NAME}.tar.gz ${APP_NAME}/
-                    echo "✅ Package créé"
-                '''
+                echo "🧪 Exécution des tests unitaires..."
+                sh "mvn test"
             }
-        }
-        
-        stage('Deploy') {
-            steps {
-                echo 'Déploiement sur Tomcat...'
-                sh '''
-                    scp dist/${APP_NAME}.tar.gz ${DEPLOY_USER}@${TOMCAT_SERVER}:/tmp/
-                    
-                    ssh ${DEPLOY_USER}@${TOMCAT_SERVER} << 'ENDSSH'
-                        sudo rm -rf /opt/tomcat/webapps/game-hub
-                        cd /tmp
-                        tar -xzf game-hub.tar.gz
-                        sudo mv game-hub /opt/tomcat/webapps/
-                        sudo chown -R tomcat:tomcat /opt/tomcat/webapps/game-hub
-                        rm -f /tmp/game-hub.tar.gz
-ENDSSH
-                    
-                    echo "✅ Déployé avec succès"
-                '''
-            }
-        }
-        
-        stage('Health Check') {
-            steps {
-                echo 'Vérification de l application...'
-                script {
-                    sleep 10
-                    def response = sh(
-                        script: "curl -s -o /dev/null -w '%{http_code}' http://${TOMCAT_SERVER}:${TOMCAT_PORT}/${APP_NAME}/",
-                        returnStdout: true
-                    ).trim()
-                    
-                    if (response == '200') {
-                        echo "✅ Application OK!"
-                        echo "🌐 http://${TOMCAT_SERVER}:${TOMCAT_PORT}/${APP_NAME}/"
-                    } else {
-                        error "❌ Health check failed"
-                    }
+            post {
+                always {
+                    junit 'target/surefire-reports/*.xml'
                 }
             }
         }
+
+        stage('Deploy to Tomcat') {
+            steps {
+                echo "🚀 Déploiement sur Tomcat..."
+                sh '''
+                    sudo cp target/*.war /opt/tomcat/latest/webapps/
+                    sudo systemctl restart tomcat
+                    echo "Application déployée avec succès!"
+                '''
+            }
+        }
     }
-    
+
     post {
         success {
-            echo '✅ Pipeline réussi!'
+            echo "✅ Pipeline terminé avec succès !"
         }
         failure {
-            echo '❌ Pipeline échoué'
+            echo "❌ Pipeline échoué !"
         }
     }
 }
