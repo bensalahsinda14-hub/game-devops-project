@@ -2,73 +2,51 @@ pipeline {
     agent any
 
     environment {
-        APP_NAME = 'game-hub'                // Nom de l'application
-        TOMCAT_SERVER = '192.168.17.155'     // IP du serveur Tomcat
-        TOMCAT_PORT = '8081'
+        APP_NAME = 'game-hub'
+        TOMCAT_SERVER = '192.168.17.155'
         DEPLOY_USER = 'sinda'
         DEPLOY_PATH = '/opt/tomcat/webapps'
+        WAR_FILE = 'game-hub.war'
         SSH_KEY = '/var/lib/jenkins/.ssh/id_rsa'
     }
 
     stages {
-        stage('Checkout') {
+        stage('Checkout SCM') {
             steps {
-                echo "📥 Récupération du code..."
+                echo '📥 Récupération du code depuis GitHub...'
                 checkout scm
             }
         }
 
         stage('Build Maven') {
             steps {
-                echo "⚙️ Build du projet..."
-                sh "mvn clean install -DskipTests"
+                echo '⚙️ Build du projet...'
+                sh 'mvn clean install -DskipTests'
             }
         }
 
         stage('Run Tests') {
             steps {
-                echo "🧪 Lancement des tests..."
-                sh "mvn test || true" // ignore test failures si nécessaire
+                echo '🧪 Lancement des tests...'
+                sh 'mvn test || echo "Tests skipped or failed"'
             }
         }
 
         stage('Package WAR') {
             steps {
-                echo "📦 Packaging du WAR..."
-                sh "cp target/${APP_NAME}.war ${APP_NAME}.war"
+                echo '📦 Packaging du WAR...'
+                sh "cp target/${WAR_FILE} ."
             }
         }
 
         stage('Deploy to Tomcat') {
             steps {
-                echo "🚀 Déploiement sur Tomcat..."
-                // Stop Tomcat
+                echo '🚀 Déploiement sur Tomcat...'
                 sh """
-                ssh -i ${SSH_KEY} -o StrictHostKeyChecking=no ${DEPLOY_USER}@${TOMCAT_SERVER} \\
-                    'sudo systemctl stop tomcat'
-                """
-
-                // Supprime l'ancien WAR et dossier
-                sh """
-                ssh -i ${SSH_KEY} -o StrictHostKeyChecking=no ${DEPLOY_USER}@${TOMCAT_SERVER} \\
-                    'sudo rm -rf ${DEPLOY_PATH}/${APP_NAME} ${DEPLOY_PATH}/${APP_NAME}.war'
-                """
-
-                // Copie le nouveau WAR
-                sh """
-                scp -i ${SSH_KEY} -o StrictHostKeyChecking=no ${APP_NAME}.war ${DEPLOY_USER}@${TOMCAT_SERVER}:${DEPLOY_PATH}/${APP_NAME}.war
-                """
-
-                // Donne les bonnes permissions
-                sh """
-                ssh -i ${SSH_KEY} -o StrictHostKeyChecking=no ${DEPLOY_USER}@${TOMCAT_SERVER} \\
-                    'sudo chown tomcat:tomcat ${DEPLOY_PATH}/${APP_NAME}.war && sudo chmod 644 ${DEPLOY_PATH}/${APP_NAME}.war'
-                """
-
-                // Redémarre Tomcat
-                sh """
-                ssh -i ${SSH_KEY} -o StrictHostKeyChecking=no ${DEPLOY_USER}@${TOMCAT_SERVER} \\
-                    'sudo systemctl start tomcat'
+                    ssh -i ${SSH_KEY} -o StrictHostKeyChecking=no ${DEPLOY_USER}@${TOMCAT_SERVER} 'sudo systemctl stop tomcat'
+                    ssh -i ${SSH_KEY} -o StrictHostKeyChecking=no ${DEPLOY_USER}@${TOMCAT_SERVER} 'sudo rm -rf ${DEPLOY_PATH}/${APP_NAME} ${DEPLOY_PATH}/${WAR_FILE}'
+                    scp -i ${SSH_KEY} -o StrictHostKeyChecking=no ${WAR_FILE} ${DEPLOY_USER}@${TOMCAT_SERVER}:${DEPLOY_PATH}/${WAR_FILE}
+                    ssh -i ${SSH_KEY} -o StrictHostKeyChecking=no ${DEPLOY_USER}@${TOMCAT_SERVER} 'sudo systemctl start tomcat'
                 """
             }
         }
@@ -76,10 +54,10 @@ pipeline {
 
     post {
         success {
-            echo "🎉 Déploiement terminé avec succès !"
+            echo '🎉 Déploiement terminé avec succès !'
         }
         failure {
-            echo "❌ Échec du pipeline."
+            echo '❌ Échec du pipeline.'
         }
     }
 }
