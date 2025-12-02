@@ -3,9 +3,9 @@ pipeline {
 
     environment {
         APP_NAME = 'game-hub'
-        TOMCAT_SERVER = '192.168.17.155'
         TOMCAT_USER = 'sinda'
-        WAR_FILE = "target/${APP_NAME}.war"
+        TOMCAT_HOST = '192.168.17.155'
+        TOMCAT_PORT = '8081'
         DEPLOY_PATH = '/opt/tomcat/webapps'
         SSH_KEY = '/var/lib/jenkins/.ssh/id_rsa'
     }
@@ -14,42 +14,52 @@ pipeline {
 
         stage('Checkout') {
             steps {
-                echo '📥 Récupération du code depuis GitHub...'
+                echo "📥 Récupération du code..."
                 checkout scm
             }
         }
 
-        stage('Build') {
+        stage('Build Maven') {
             steps {
-                echo '🔧 Compilation du projet...'
-                sh 'mvn clean package -DskipTests'
+                echo "⚙️ Build du projet..."
+                sh 'mvn clean install -DskipTests'
+            }
+        }
+
+        stage('Tests') {
+            steps {
+                echo "🧪 Lancement des tests..."
+                sh 'mvn test'
+            }
+        }
+
+        stage('Package WAR') {
+            steps {
+                echo "📦 Packaging du WAR..."
+                sh 'mv target/*.war ${APP_NAME}.war'
             }
         }
 
         stage('Deploy to Tomcat') {
             steps {
-                echo '🚀 Déploiement sur Tomcat...'
+                echo "🚀 Déploiement sur Tomcat..."
 
-                sh """
-                ssh -o StrictHostKeyChecking=no -i ${SSH_KEY} ${TOMCAT_USER}@${TOMCAT_SERVER} '
-                    sudo systemctl stop tomcat
-                    rm -rf ${DEPLOY_PATH}/${APP_NAME}
-                    rm -f ${DEPLOY_PATH}/${APP_NAME}.war
-                '
-                """
-
-                sh """
-                scp -o StrictHostKeyChecking=no -i ${SSH_KEY} ${WAR_FILE} ${TOMCAT_USER}@${TOMCAT_SERVER}:${DEPLOY_PATH}/
-                """
-
-                sh """
-                ssh -o StrictHostKeyChecking=no -i ${SSH_KEY} ${TOMCAT_USER}@${TOMCAT_SERVER} '
-                    sudo systemctl start tomcat
-                '
-                """
-
-                echo '✅ Déploiement terminé avec succès !'
+                // Copie du WAR vers le serveur Tomcat
+                sh '''
+                ssh -i ${SSH_KEY} -o StrictHostKeyChecking=no ${TOMCAT_USER}@${TOMCAT_HOST} "sudo systemctl stop tomcat"
+                scp -i ${SSH_KEY} -o StrictHostKeyChecking=no ${APP_NAME}.war ${TOMCAT_USER}@${TOMCAT_HOST}:${DEPLOY_PATH}/${APP_NAME}.war
+                ssh -i ${SSH_KEY} -o StrictHostKeyChecking=no ${TOMCAT_USER}@${TOMCAT_HOST} "sudo systemctl start tomcat"
+                '''
             }
+        }
+    }
+
+    post {
+        success {
+            echo "🎉 Déploiement terminé avec succès !"
+        }
+        failure {
+            echo "❌ Échec du pipeline."
         }
     }
 }
