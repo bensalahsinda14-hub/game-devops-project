@@ -1,6 +1,6 @@
 pipeline {
     agent any
-
+    
     environment {
         APP_NAME = 'game-hub'
         TOMCAT_SERVER = '192.168.17.155'
@@ -8,7 +8,7 @@ pipeline {
         DEPLOY_PATH = '/opt/tomcat/webapps'
         SSH_KEY = '/var/lib/jenkins/.ssh/id_rsa'
     }
-
+    
     stages {
         stage('Checkout') {
             steps {
@@ -16,28 +16,46 @@ pipeline {
                 checkout scm
             }
         }
-
+        
         stage('Build Maven') {
             steps {
                 echo '⚙️ Build du projet...'
                 sh 'mvn clean install -DskipTests'
             }
         }
-
+        
         stage('Run Tests') {
             steps {
                 echo '🧪 Lancement des tests...'
-                sh 'mvn test || true' // ne bloque pas le pipeline si pas de tests
+                sh 'mvn test || true'
             }
         }
-
+        
+        stage('SonarQube Analysis') {
+            steps {
+                echo '🔍 Analyse SonarQube...'
+                withSonarQubeEnv('SonarQube') {
+                    sh 'mvn sonar:sonar -Dsonar.projectKey=Game-Hub-DevOps-Project'
+                }
+            }
+        }
+        
+        stage('Quality Gate') {
+            steps {
+                echo '🎯 Vérification Quality Gate...'
+                timeout(time: 5, unit: 'MINUTES') {
+                    waitForQualityGate abortPipeline: true
+                }
+            }
+        }
+        
         stage('Package WAR') {
             steps {
                 echo '📦 Packaging du WAR...'
                 sh 'cp target/game-hub.war .'
             }
         }
-
+        
         stage('Deploy to Tomcat') {
             steps {
                 echo '🚀 Déploiement sur Tomcat...'
@@ -55,13 +73,17 @@ pipeline {
             }
         }
     }
-
+    
     post {
         success {
             echo '✅ Pipeline terminé avec succès !'
+            echo '📊 Résultats SonarQube disponibles sur http://localhost:9000'
         }
         failure {
             echo '❌ Échec du pipeline.'
+        }
+        always {
+            echo '🧹 Nettoyage du workspace...'
         }
     }
 }
