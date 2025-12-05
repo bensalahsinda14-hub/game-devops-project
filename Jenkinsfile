@@ -4,6 +4,7 @@ pipeline {
     environment {
         APP_NAME = 'game-hub'
         TOMCAT_SERVER = '192.168.17.155'
+        TOMCAT_PORT = '8081'
         DEPLOY_USER = 'sinda'
         DEPLOY_PATH = '/opt/tomcat/webapps'
         SSH_KEY = '/var/lib/jenkins/.ssh/id_rsa'
@@ -44,7 +45,7 @@ pipeline {
         stage('Quality Gate') {
             steps {
                 echo '🎯 Vérification Quality Gate...'
-                timeout(time: 10, unit: 'MINUTES') {
+                timeout(time: 2, unit: 'MINUTES') {
                     script {
                         try {
                             def qg = waitForQualityGate()
@@ -84,6 +85,62 @@ pipeline {
                     ssh -i ${SSH_KEY} -o StrictHostKeyChecking=no ${DEPLOY_USER}@${TOMCAT_SERVER} \\
                         sudo systemctl start tomcat
                 """
+                echo '⏳ Waiting for Tomcat to start...'
+                sleep 30
+            }
+        }
+        
+        stage('Nikto Security Scan') {
+            steps {
+                echo '🔍 Scanning web server vulnerabilities with Nikto...'
+                sh """
+                    nikto -h http://${TOMCAT_SERVER}:${TOMCAT_PORT}/${APP_NAME} \\
+                        -output nikto-report.html -Format html || true
+                """
+                publishHTML([
+                    reportDir: '.',
+                    reportFiles: 'nikto-report.html',
+                    reportName: 'Nikto Security Report'
+                ])
+            }
+        }
+        
+        stage('SSL/TLS Check') {
+            steps {
+                echo '🔒 Checking SSL/TLS configuration...'
+                sh """
+                    testssl --jsonfile testssl-report.json \\
+                        ${TOMCAT_SERVER}:${TOMCAT_PORT} || true
+                """
+                archiveArtifacts artifacts: 'testssl-report.json', allowEmptyArchive: true
+            }
+        }
+        
+        stage('OWASP ZAP Scan') {
+            steps {
+                echo '🛡️ Running OWASP ZAP security scan...'
+                sh """
+                    /opt/zap/ZAP_2.15.0/zap.sh -cmd \\
+                        -quickurl http://${TOMCAT_SERVER}:${TOMCAT_PORT}/${APP_NAME} \\
+                        -quickout zap-report.html || true
+                """
+                publishHTML([
+                    reportDir: '.',
+                    reportFiles: 'zap-report.html',
+                    reportName: 'ZAP Security Report'
+                ])
+            }
+        }
+        
+        stage('Performance Test') {
+            steps {
+                echo '⚡ Running performance test with ApacheBench...'
+                sh """
+                    ab -n 1000 -c 10 \\
+                        http://${TOMCAT_SERVER}:${TOMCAT_PORT}/${APP_NAME}/ \\
+                        > performance-report.txt 2>&1 || true
+                """
+                archiveArtifacts artifacts: 'performance-report.txt', allowEmptyArchive: true
             }
         }
     }
@@ -91,13 +148,18 @@ pipeline {
     post {
         success {
             echo '✅ Pipeline terminé avec succès !'
-            echo '📊 Résultats SonarQube: http://192.168.17.155:9000/dashboard?id=Game-Hub-DevOps-Project'
+            echo '🌐 Application: http://192.168.17.155:8081/game-hub'
+            echo '📊 SonarQube: http://192.168.17.155:9000/dashboard?id=Game-Hub-DevOps-Project'
+            echo '🔍 Nikto Report: Available in Jenkins artifacts'
+            echo '🛡️ ZAP Report: Available in Jenkins artifacts'
+            echo '⚡ Performance Report: Available in Jenkins artifacts'
         }
         failure {
             echo '❌ Échec du pipeline.'
         }
         always {
             echo '🧹 Nettoyage du workspace...'
+            cleanWs()
         }
     }
 }
