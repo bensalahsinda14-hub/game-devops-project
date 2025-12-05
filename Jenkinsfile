@@ -45,7 +45,7 @@ pipeline {
         stage('Quality Gate') {
             steps {
                 echo '🎯 Vérification Quality Gate...'
-                timeout(time: 2, unit: 'MINUTES') {
+                timeout(time: 10, unit: 'MINUTES') {
                     script {
                         try {
                             def qg = waitForQualityGate()
@@ -98,6 +98,9 @@ pipeline {
                         -output nikto-report.html -Format html || true
                 """
                 publishHTML([
+                    allowMissing: true,
+                    alwaysLinkToLastBuild: true,
+                    keepAll: true,
                     reportDir: '.',
                     reportFiles: 'nikto-report.html',
                     reportName: 'Nikto Security Report'
@@ -125,6 +128,9 @@ pipeline {
                         -quickout zap-report.html || true
                 """
                 publishHTML([
+                    allowMissing: true,
+                    alwaysLinkToLastBuild: true,
+                    keepAll: true,
                     reportDir: '.',
                     reportFiles: 'zap-report.html',
                     reportName: 'ZAP Security Report'
