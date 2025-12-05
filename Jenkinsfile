@@ -86,7 +86,7 @@ pipeline {
                         sudo systemctl start tomcat
                 """
                 echo '⏳ Waiting for Tomcat to start...'
-                sleep 30
+                sleep 5
             }
         }
         
@@ -94,6 +94,7 @@ pipeline {
             steps {
                 echo '🔍 Scanning web server vulnerabilities with Nikto...'
                 sh """
+                    rm -f nikto-report.html
                     nikto -h http://${TOMCAT_SERVER}:${TOMCAT_PORT}/${APP_NAME} \\
                         -output nikto-report.html -Format html || true
                 """
@@ -112,6 +113,7 @@ pipeline {
             steps {
                 echo '🔒 Checking SSL/TLS configuration...'
                 sh """
+                    rm -f testssl-report.json
                     testssl --jsonfile testssl-report.json \\
                         ${TOMCAT_SERVER}:${TOMCAT_PORT} || true
                 """
@@ -123,7 +125,9 @@ pipeline {
             steps {
                 echo '🛡️ Running OWASP ZAP security scan...'
                 sh """
+                    rm -f zap-report.html
                     /opt/zap/ZAP_2.15.0/zap.sh -cmd \\
+                        -port 8090 \\
                         -quickurl http://${TOMCAT_SERVER}:${TOMCAT_PORT}/${APP_NAME} \\
                         -quickout zap-report.html || true
                 """
@@ -165,7 +169,7 @@ pipeline {
         }
         always {
             echo '🧹 Nettoyage du workspace...'
-            cleanWs()
+            deleteDir()
         }
     }
 }
