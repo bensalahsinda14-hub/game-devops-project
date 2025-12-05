@@ -934,7 +934,7 @@
                 pongTitle: "Jeu de Pong",
                 ticTacToeTitle: "Tic-Tac-Toe (Morpion)",
                 memoryTitle: "Jeu de Mémoire",
-                snakeTitle: "Snake Game"
+                snakeTitle: "Snake"
             },
             en: {
                 mainTitle: "Arcade 4 Games",
@@ -985,7 +985,7 @@
                 pongTitle: "Pong Game",
                 ticTacToeTitle: "Tic-Tac-Toe",
                 memoryTitle: "Memory Game",
-                snakeTitle: "Snake Game"
+                snakeTitle: "Snake"
             },
             ar: {
                 mainTitle: "أركيد 4 ألعاب",
@@ -1036,7 +1036,7 @@
                 pongTitle: "لعبة البونج",
                 ticTacToeTitle: "تيك تاك تو",
                 memoryTitle: "لعبة الذاكرة",
-                snakeTitle: "لعبة الأفعى"
+                snakeTitle: "الأفعى"
             }
         };
 
@@ -1123,7 +1123,7 @@
             // Afficher le jeu sélectionné
             document.getElementById(`${game}Game`).style.display = 'flex';
             
-            // Mettre à jour le titre du jeu
+            // Mettre à jour le titre du jeu - CORRIGÉ ICI
             const gameTitles = {
                 'pong': translations[currentLanguage].pongTitle,
                 'ticTacToe': translations[currentLanguage].ticTacToeTitle,
@@ -1901,6 +1901,9 @@
             document.getElementById('snakeStart').addEventListener('click', startSnakeGame);
             document.getElementById('snakePause').addEventListener('click', toggleSnakePause);
             document.getElementById('snakeReset').addEventListener('click', resetSnakeGame);
+            
+            // Dessiner l'écran initial
+            drawSnakeGame();
         }
 
         function startSnakeGame() {
@@ -2029,6 +2032,11 @@
             if (difficulty === 'easy') snakeSpeed = 8;
             else if (difficulty === 'medium') snakeSpeed = 12;
             else if (difficulty === 'hard') snakeSpeed = 16;
+            
+            if (gameActive) {
+                clearTimeout(snakeAnimationId);
+                snakeGameLoop();
+            }
         }
 
         function toggleSnakePause() {
